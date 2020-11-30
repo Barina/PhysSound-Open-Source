@@ -36,9 +36,9 @@ namespace PhysSound
 
             matFoldout = EditorGUILayout.Foldout(matFoldout, "PhysSound Materials List");
 
-            SplatPrototype[] textures = physTerr.Terrain.terrainData.splatPrototypes;
+            TerrainLayer[] tLayers = physTerr.Terrain.terrainData.terrainLayers;
 
-            while (physTerr.SoundMaterials.Count > textures.Length)
+            while (physTerr.SoundMaterials.Count > tLayers.Length)
             {
                 physTerr.SoundMaterials.RemoveAt(physTerr.SoundMaterials.Count - 1);
             }
@@ -47,20 +47,21 @@ namespace PhysSound
             {
                 matScroll = EditorGUILayout.BeginScrollView(matScroll, GUILayout.MaxHeight(200));
 
-                for (int i = 0; i < textures.Length; i++)
+                for (int i = 0; i < tLayers.Length; i++)
                 {
                     if (i >= physTerr.SoundMaterials.Count)
                     {
                         physTerr.SoundMaterials.Add(null);
                     }
 
-                    SplatPrototype sp = textures[i];
+                    TerrainLayer t = tLayers[i];
+                    //SplatPrototype sp = tLayers[i];
                     GUILayout.BeginHorizontal();
 
-                    GUILayout.Box(sp.texture, GUILayout.Width(50), GUILayout.Height(50));
+                    GUILayout.Box(t.diffuseTexture, GUILayout.Width(50), GUILayout.Height(50));
 
                     GUILayout.BeginVertical();
-                    EditorGUILayout.LabelField("Splat Texture: " + sp.texture.name);
+                    EditorGUILayout.LabelField("Splat Texture: " + t.diffuseTexture.name);
                     physTerr.SoundMaterials[i] = (PhysSoundMaterial)EditorGUILayout.ObjectField(physTerr.SoundMaterials[i], typeof(PhysSoundMaterial), false);
                     GUILayout.EndVertical();
 
