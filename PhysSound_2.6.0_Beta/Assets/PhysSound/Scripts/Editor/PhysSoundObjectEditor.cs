@@ -7,7 +7,7 @@ namespace PhysSound
     [CanEditMultipleObjects]
     public class PhysSoundObjectEditor : Editor
     {
-        float dividerHeight = 2;
+        readonly float dividerHeight = 2;
 
         SerializedProperty mat, impactAudio, autoCreate, playClipPoint, hitsTriggers;
         PhysSoundObject obj;

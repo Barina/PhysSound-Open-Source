@@ -1,6 +1,4 @@
 using UnityEngine;
-using System.Reflection;
-using System;
 
 namespace PhysSound
 {
@@ -136,9 +134,6 @@ namespace PhysSound
             return null;
         }
 
-        public void ReleaseSource(AudioSource a)
-        {
-            a.Stop();
-        }
+        public void ReleaseSource(AudioSource a) => a.Stop();
     }
 }

@@ -55,6 +55,8 @@ namespace PhysSound
         /// </summary>
         public AudioClip GetImpactAudio(GameObject otherObject, Vector3 relativeVel, Vector3 norm, Vector3 contact, int layer = -1)
         {
+            _ = layer;
+
             if (audioSetDic == null)
                 return null;
 
@@ -76,9 +78,7 @@ namespace PhysSound
             {
                 if (m)
                 {
-                    PhysSoundAudioSet audSet;
-
-                    if (audioSetDic.TryGetValue(m.MaterialTypeKey, out audSet))
+                    if (audioSetDic.TryGetValue(m.MaterialTypeKey, out PhysSoundAudioSet audSet))
                         return audSet.GetImpact(velNorm, false);
                     else if (FallbackTypeKey != -1)
                         return audioSetDic[FallbackTypeKey].GetImpact(velNorm, false);
@@ -91,9 +91,7 @@ namespace PhysSound
             {
                 if (m)
                 {
-                    PhysSoundAudioSet audSet;
-
-                    if (audioSetDic.TryGetValue(m.MaterialTypeKey, out audSet))
+                    if (audioSetDic.TryGetValue(m.MaterialTypeKey, out PhysSoundAudioSet audSet))
                         return audSet.GetImpact(0, true);
                     else if (FallbackTypeKey != -1)
                         return audioSetDic[FallbackTypeKey].GetImpact(0, true);
@@ -134,9 +132,7 @@ namespace PhysSound
         /// Gets a random pitch within this material's pitch randomness range.
         /// </summary>
         public float GetRandomPitch()
-        {
-            return Random.Range(-PitchRandomness, PitchRandomness);
-        }
+            => Random.Range(-PitchRandomness, PitchRandomness);
 
         /// <summary>
         /// Gets the amount to multiply the pitch by based on the given scale and the ScaleMod property.
@@ -165,10 +161,8 @@ namespace PhysSound
         public bool HasAudioSet(int keyIndex)
         {
             foreach (PhysSoundAudioSet aud in AudioSets)
-            {
                 if (aud.CompareKeyIndex(keyIndex))
                     return true;
-            }
 
             return false;
         }
@@ -178,12 +172,10 @@ namespace PhysSound
         /// </summary>
         public PhysSoundAudioSet GetAudioSet(int keyIndex)
         {
-            foreach (PhysSoundAudioSet aud in AudioSets)
-            {
+            foreach (PhysSoundAudioSet aud in AudioSets)            
                 if (aud.CompareKeyIndex(keyIndex))
                     return aud;
-            }
-
+            
             return null;
         }
 
@@ -196,9 +188,7 @@ namespace PhysSound
             names[0] = "None";
 
             for (int i = 0; i < AudioSets.Count; i++)
-            {
                 names[i + 1] = PhysSoundTypeList.GetKey(AudioSets[i].Key);
-            }
 
             return names;
         }
@@ -207,9 +197,7 @@ namespace PhysSound
         /// Compares the layer of the given GameObject to this material's collision mask.
         /// </summary>
         public bool CollideWith(GameObject g)
-        {
-            return (1 << g.layer & CollisionMask.value) != 0;
-        }
+            => (1 << g.layer & CollisionMask.value) != 0;
     }
 
     [System.Serializable]
@@ -228,9 +216,7 @@ namespace PhysSound
                 return null;
 
             if (random)
-            {
                 return Impacts[Random.Range(0, Impacts.Count)];
-            }
             else
             {
                 int i = (int)(vel * (Impacts.Count - 1));
@@ -241,9 +227,6 @@ namespace PhysSound
         /// <summary>
         /// Returns true if this Audio Set's key index is the same as the given key index.
         /// </summary>
-        public bool CompareKeyIndex(int k)
-        {
-            return Key == k;
-        }
+        public bool CompareKeyIndex(int k) => Key == k;
     }
 }

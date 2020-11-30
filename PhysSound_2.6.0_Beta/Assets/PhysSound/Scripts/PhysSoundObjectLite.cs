@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
 
 namespace PhysSound
 {
@@ -84,7 +83,7 @@ namespace PhysSound
             contactPoint = c.contacts[0].point;
             relativeVelocity = c.relativeVelocity;
 
-            playImpactSound(c.collider.gameObject, relativeVelocity, contactNormal, contactPoint);
+            PlayImpactSound(c.collider.gameObject, relativeVelocity, contactNormal, contactPoint);
 
             _setPrevVelocity = true;
         }
@@ -98,7 +97,7 @@ namespace PhysSound
             if (SoundMaterial == null || !this.enabled || SoundMaterial.AudioSets.Count == 0 || !HitsTriggers)
                 return;
 
-            playImpactSound(c.gameObject, TotalKinematicVelocity, Vector3.zero, c.transform.position);
+            PlayImpactSound(c.gameObject, TotalKinematicVelocity, Vector3.zero, c.transform.position);
         }
 
         #endregion
@@ -110,7 +109,7 @@ namespace PhysSound
             if (SoundMaterial == null || !this.enabled || SoundMaterial.AudioSets.Count == 0)
                 return;
 
-            playImpactSound(c.collider.gameObject, c.relativeVelocity, c.contacts[0].normal, c.contacts[0].point);
+            PlayImpactSound(c.collider.gameObject, c.relativeVelocity, c.contacts[0].normal, c.contacts[0].point);
 
             _setPrevVelocity = true;
         }
@@ -124,7 +123,7 @@ namespace PhysSound
             if (SoundMaterial == null || !this.enabled || SoundMaterial.AudioSets.Count == 0)
                 return;
 
-            playImpactSound(c.gameObject, TotalKinematicVelocity, Vector3.zero, c.transform.position);
+            PlayImpactSound(c.gameObject, TotalKinematicVelocity, Vector3.zero, c.transform.position);
         }
 
         #endregion

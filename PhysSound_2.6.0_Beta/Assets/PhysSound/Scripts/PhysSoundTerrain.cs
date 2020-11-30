@@ -8,7 +8,7 @@ namespace PhysSound
     {
         public Terrain Terrain;
         public List<PhysSoundMaterial> SoundMaterials = new List<PhysSoundMaterial>();
-        Dictionary<int, PhysSoundComposition> compDic = new Dictionary<int, PhysSoundComposition>();
+        readonly Dictionary<int, PhysSoundComposition> compDic = new Dictionary<int, PhysSoundComposition>();
 
         TerrainData terrainData;
         Vector3 terrainPos;
@@ -30,7 +30,7 @@ namespace PhysSound
         /// </summary>
         public override PhysSoundMaterial GetPhysSoundMaterial(Vector3 contactPoint)
         {
-            int dominantIndex = getDominantTexture(contactPoint);
+            int dominantIndex = GetDominantTexture(contactPoint);
 
             if (dominantIndex < SoundMaterials.Count && SoundMaterials[dominantIndex] != null)
                 return SoundMaterials[dominantIndex];
@@ -46,7 +46,7 @@ namespace PhysSound
             foreach (PhysSoundComposition c in compDic.Values)
                 c.Reset();
 
-            float[] mix = getTextureMix(contactPoint);
+            float[] mix = GetTextureMix(contactPoint);
 
             for (int i = 0; i < mix.Length; i++)
             {
@@ -56,18 +56,14 @@ namespace PhysSound
                 if (SoundMaterials[i] == null)
                     continue;
 
-                PhysSoundComposition comp;
-
-                if (compDic.TryGetValue(SoundMaterials[i].MaterialTypeKey, out comp))
-                {
+                if (compDic.TryGetValue(SoundMaterials[i].MaterialTypeKey, out PhysSoundComposition comp))
                     comp.Add(mix[i]);
-                }
             }
 
             return compDic;
         }
 
-        private float[] getTextureMix(Vector3 worldPos)
+        private float[] GetTextureMix(Vector3 worldPos)
         {
             int mapX = (int)(((worldPos.x - terrainPos.x) / terrainData.size.x) * terrainData.alphamapWidth);
             int mapZ = (int)(((worldPos.z - terrainPos.z) / terrainData.size.z) * terrainData.alphamapHeight);
@@ -77,16 +73,14 @@ namespace PhysSound
             float[] cellMix = new float[splatmapData.GetUpperBound(2) + 1];
 
             for (int i = 0; i < cellMix.Length; i++)
-            {
                 cellMix[i] = splatmapData[0, 0, i];
-            }
 
             return cellMix;
         }
 
-        private int getDominantTexture(Vector3 worldPos)
+        private int GetDominantTexture(Vector3 worldPos)
         {
-            float[] mix = getTextureMix(worldPos);
+            float[] mix = GetTextureMix(worldPos);
 
             float maxMix = 0;
             int maxMixIndex = 0;
@@ -127,9 +121,6 @@ namespace PhysSound
             Count++;
         }
 
-        public float GetAverage()
-        {
-            return Value / Count;
-        }
+        public float GetAverage() => Value / Count;
     }
 }

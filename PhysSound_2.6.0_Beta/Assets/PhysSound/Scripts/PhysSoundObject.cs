@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace PhysSound
 {
-    [AddComponentMenu("PhysSound/PhysSound Object")]
+    [RequireComponent(typeof(AudioSource)), AddComponentMenu("PhysSound/PhysSound Object")]
     public class PhysSoundObject : PhysSoundObjectBase
     {
         public List<PhysSoundAudioContainer> AudioContainers = new List<PhysSoundAudioContainer>();
@@ -12,8 +12,8 @@ namespace PhysSound
         bool breakOnCollisionStay;
         static Transform mainCamera;
         float distanceToMainCamera;
-        bool alertNotInSoundZone;                               // if sound listener not in sound zone, than stop all Collision events
-        
+        bool alertNotInSoundZone; // if sound listener not in sound zone, than stop all Collision events
+
         // optimization for OnCollisionStay(), skip after maxStep steps
         byte count;
         float maxStep = 2.0f;
@@ -39,8 +39,10 @@ namespace PhysSound
                     if (audSet.Slide == null)
                         continue;
 
-                    PhysSoundAudioContainer audCont = new PhysSoundAudioContainer(audSet.Key);
-                    audCont.SlideAudio = PhysSoundTempAudioPool.GetAudioSourceCopy(ImpactAudio, this.gameObject);
+                    PhysSoundAudioContainer audCont = new PhysSoundAudioContainer(audSet.Key)
+                    {
+                        SlideAudio = PhysSoundTempAudioPool.GetAudioSourceCopy(ImpactAudio, this.gameObject)
+                    };
 
                     audCont.Initialize(this);
                     _audioContainersDic.Add(audCont.KeyIndex, audCont);
@@ -84,12 +86,11 @@ namespace PhysSound
                 PhysSoundTempAudioPool.Create();
             else if (ImpactAudio != null && !ImpactAudio.isActiveAndEnabled)
                 ImpactAudio = PhysSoundTempAudioPool.GetAudioSourceCopy(ImpactAudio, gameObject);
-            
+
             // @todo - menu in editor for choose camera
             mainCamera = GameObject.Find("Main Camera").transform;
             maxStep = Mathf.Round(Random.Range(2.0f, 4.0f));
             //Debug.Log(maxStep);
-
         }
 
         void Update()
@@ -109,18 +110,17 @@ namespace PhysSound
             _kinematicAngularVelocity = Quaternion.Angle(_prevRotation, transform.rotation) / Time.deltaTime / 45f;
             _prevRotation = transform.rotation;
 
-            if ((1 / Time.unscaledDeltaTime) < 30+(maxStep*2))                     // if there is too much collision, then the minimum FPS will be " < X", because OnCollisionStay slows everything slows down
+            if ((1 / Time.unscaledDeltaTime) < 30 + (maxStep * 2)) // if there is too much collision, then the minimum FPS will be " < X", because OnCollisionStay slows everything slows down
                 breakOnCollisionStay = true;
             else
                 breakOnCollisionStay = false;
-            
+
             // @todo - distance for each sound source of the Sound Material: impact, slide hard, slide soft
             distanceToMainCamera = Vector3.Distance(mainCamera.position, transform.position);
             if (distanceToMainCamera > GetComponent<AudioSource>().maxDistance)
                 alertNotInSoundZone = true;
             else
                 alertNotInSoundZone = false;
-            
         }
 
         /// <summary>
@@ -157,7 +157,7 @@ namespace PhysSound
 
         #region Main Functions
 
-        private void setSlideTargetVolumes(GameObject otherObject, Vector3 relativeVelocity, Vector3 normal, Vector3 contactPoint, bool exit)
+        private void SetSlideTargetVolumes(GameObject otherObject, Vector3 relativeVelocity, Vector3 normal, Vector3 contactPoint, bool exit)
         {
             //log("Sliding! " + gameObject.name + " against " + otherObject.name + " - Relative Velocity: " + relativeVelocity + ", Normal: " + normal + ", Contact Point: " + contactPoint + ", Exit: " + exit);
 
@@ -167,7 +167,7 @@ namespace PhysSound
             }
 
             PhysSoundMaterial m = null;
-            PhysSoundBase b = otherObject == null ? null : otherObject.GetComponent<PhysSoundBase>();
+            PhysSoundBase b = !otherObject ? null : otherObject.GetComponent<PhysSoundBase>();
 
             if (b)
             {
@@ -179,10 +179,9 @@ namespace PhysSound
 
                     foreach (PhysSoundAudioContainer c in _audioContainersDic.Values)
                     {
-                        PhysSoundComposition comp;
                         float mod = 0;
 
-                        if (compDic.TryGetValue(c.KeyIndex, out comp))
+                        if (compDic.TryGetValue(c.KeyIndex, out PhysSoundComposition comp))
                             mod = comp.GetAverage();
 
                         c.SetTargetVolumeAndPitch(this.gameObject, otherObject, relativeVelocity, normal, exit, mod);
@@ -198,19 +197,15 @@ namespace PhysSound
             //If the other object has a PhysSound material
             if (m)
             {
-                PhysSoundAudioContainer aud;
-
-                if (_audioContainersDic.TryGetValue(m.MaterialTypeKey, out aud))
+                if (_audioContainersDic.TryGetValue(m.MaterialTypeKey, out PhysSoundAudioContainer aud))
                     aud.SetTargetVolumeAndPitch(this.gameObject, otherObject, relativeVelocity, normal, exit);
                 else if (!SoundMaterial.HasAudioSet(m.MaterialTypeKey) && SoundMaterial.FallbackTypeKey != -1 && _audioContainersDic.TryGetValue(SoundMaterial.FallbackTypeKey, out aud))
                     aud.SetTargetVolumeAndPitch(this.gameObject, otherObject, relativeVelocity, normal, exit);
             }
-            //If it doesnt we set volumes based on the fallback setting of our material
+            //If it doesn't we set volumes based on the fallback setting of our material
             else
             {
-                PhysSoundAudioContainer aud;
-
-                if (SoundMaterial.FallbackTypeKey != -1 && _audioContainersDic.TryGetValue(SoundMaterial.FallbackTypeKey, out aud))
+                if (SoundMaterial.FallbackTypeKey != -1 && _audioContainersDic.TryGetValue(SoundMaterial.FallbackTypeKey, out PhysSoundAudioContainer aud))
                     aud.SetTargetVolumeAndPitch(this.gameObject, otherObject, relativeVelocity, normal, exit);
             }
         }
@@ -224,14 +219,14 @@ namespace PhysSound
 
         void OnCollisionEnter(Collision c)
         {
-            if (alertNotInSoundZone || SoundMaterial == null || !this.enabled || SoundMaterial.AudioSets.Count == 0 )
+            if (alertNotInSoundZone || SoundMaterial == null || !this.enabled || SoundMaterial.AudioSets.Count == 0)
                 return;
 
             contactNormal = c.GetContact(0).normal;
             contactPoint = c.GetContact(0).point;
             relativeVelocity = c.relativeVelocity;
 
-            playImpactSound(c.collider.gameObject, relativeVelocity, contactNormal, contactPoint);
+            PlayImpactSound(c.collider.gameObject, relativeVelocity, contactNormal, contactPoint);
 
             _setPrevVelocity = true;
         }
@@ -256,7 +251,7 @@ namespace PhysSound
                 _prevVelocity = _r.velocity;
                 _setPrevVelocity = false;
             }
-            
+
             Vector3 deltaVel = _r.velocity - _prevVelocity;
 
             if (c.contactCount > 0)
@@ -267,18 +262,18 @@ namespace PhysSound
 
             relativeVelocity = c.relativeVelocity;
 
-            playImpactSound(c.collider.gameObject, deltaVel, contactNormal, contactPoint);
-            setSlideTargetVolumes(c.collider.gameObject, relativeVelocity, contactNormal, contactPoint, false);
+            PlayImpactSound(c.collider.gameObject, deltaVel, contactNormal, contactPoint);
+            SetSlideTargetVolumes(c.collider.gameObject, relativeVelocity, contactNormal, contactPoint, false);
 
             _prevVelocity = _r.velocity;
         }
 
         void OnCollisionExit(Collision c)
         {
-            if (alertNotInSoundZone || SoundMaterial == null || !this.enabled || SoundMaterial.AudioSets.Count == 0 || _audioContainersDic == null )
+            if (alertNotInSoundZone || SoundMaterial == null || !this.enabled || SoundMaterial.AudioSets.Count == 0 || _audioContainersDic == null)
                 return;
 
-            setSlideTargetVolumes(c.collider.gameObject, Vector3.zero, Vector3.zero, transform.position, true);
+            SetSlideTargetVolumes(c.collider.gameObject, Vector3.zero, Vector3.zero, transform.position, true);
             _setPrevVelocity = true;
         }
 
@@ -291,7 +286,7 @@ namespace PhysSound
             if (SoundMaterial == null || !this.enabled || SoundMaterial.AudioSets.Count == 0 || !HitsTriggers)
                 return;
 
-            playImpactSound(c.gameObject, TotalKinematicVelocity, Vector3.zero, c.transform.position);
+            PlayImpactSound(c.gameObject, TotalKinematicVelocity, Vector3.zero, c.transform.position);
         }
 
         void OnTriggerStay(Collider c)
@@ -299,7 +294,7 @@ namespace PhysSound
             if (SoundMaterial == null || !this.enabled || SoundMaterial.AudioSets.Count == 0 || _audioContainersDic == null || !HitsTriggers)
                 return;
 
-            setSlideTargetVolumes(c.gameObject, TotalKinematicVelocity, Vector3.zero, c.transform.position, false);
+            SetSlideTargetVolumes(c.gameObject, TotalKinematicVelocity, Vector3.zero, c.transform.position, false);
         }
 
         void OnTriggerExit(Collider c)
@@ -307,7 +302,7 @@ namespace PhysSound
             if (SoundMaterial == null || !this.enabled || SoundMaterial.AudioSets.Count == 0 || _audioContainersDic == null || !HitsTriggers)
                 return;
 
-            setSlideTargetVolumes(c.gameObject, TotalKinematicVelocity, Vector3.zero, c.transform.position, true);
+            SetSlideTargetVolumes(c.gameObject, TotalKinematicVelocity, Vector3.zero, c.transform.position, true);
         }
 
         #endregion
@@ -319,7 +314,7 @@ namespace PhysSound
             if (SoundMaterial == null || !this.enabled || SoundMaterial.AudioSets.Count == 0)
                 return;
 
-            playImpactSound(c.collider.gameObject, c.relativeVelocity, c.contacts[0].normal, c.contacts[0].point);
+            PlayImpactSound(c.collider.gameObject, c.relativeVelocity, c.contacts[0].normal, c.contacts[0].point);
 
             _setPrevVelocity = true;
         }
@@ -337,8 +332,8 @@ namespace PhysSound
 
             Vector3 deltaVel = _r2D.velocity - (Vector2)_prevVelocity;
 
-            playImpactSound(c.collider.gameObject, deltaVel, c.contacts[0].normal, c.contacts[0].point);
-            setSlideTargetVolumes(c.collider.gameObject, c.relativeVelocity, c.contacts[0].normal, c.contacts[0].point, false);
+            PlayImpactSound(c.collider.gameObject, deltaVel, c.contacts[0].normal, c.contacts[0].point);
+            SetSlideTargetVolumes(c.collider.gameObject, c.relativeVelocity, c.contacts[0].normal, c.contacts[0].point, false);
 
             _prevVelocity = _r2D.velocity;
         }
@@ -348,7 +343,7 @@ namespace PhysSound
             if (SoundMaterial == null || !this.enabled || SoundMaterial.AudioSets.Count == 0 || _audioContainersDic == null)
                 return;
 
-            setSlideTargetVolumes(c.collider.gameObject, c.relativeVelocity, Vector3.up, transform.position, true);
+            SetSlideTargetVolumes(c.collider.gameObject, c.relativeVelocity, Vector3.up, transform.position, true);
 
             _setPrevVelocity = true;
         }
@@ -362,7 +357,7 @@ namespace PhysSound
             if (SoundMaterial == null || !this.enabled || SoundMaterial.AudioSets.Count == 0)
                 return;
 
-            playImpactSound(c.gameObject, TotalKinematicVelocity, Vector3.zero, c.transform.position);
+            PlayImpactSound(c.gameObject, TotalKinematicVelocity, Vector3.zero, c.transform.position);
         }
 
         void OnTriggerStay2D(Collider2D c)
@@ -370,7 +365,7 @@ namespace PhysSound
             if (SoundMaterial == null || !this.enabled || SoundMaterial.AudioSets.Count == 0 || _audioContainersDic == null)
                 return;
 
-            setSlideTargetVolumes(c.gameObject, TotalKinematicVelocity, Vector3.zero, c.transform.position, false);
+            SetSlideTargetVolumes(c.gameObject, TotalKinematicVelocity, Vector3.zero, c.transform.position, false);
         }
 
         void OnTriggerExit2D(Collider2D c)
@@ -378,7 +373,7 @@ namespace PhysSound
             if (SoundMaterial == null || !this.enabled || SoundMaterial.AudioSets.Count == 0 || _audioContainersDic == null)
                 return;
 
-            setSlideTargetVolumes(c.gameObject, TotalKinematicVelocity, Vector3.zero, c.transform.position, true);
+            SetSlideTargetVolumes(c.gameObject, TotalKinematicVelocity, Vector3.zero, c.transform.position, true);
         }
 
         #endregion
@@ -388,10 +383,8 @@ namespace PhysSound
         public bool HasAudioContainer(int keyIndex)
         {
             foreach (PhysSoundAudioContainer aud in AudioContainers)
-            {
                 if (aud.CompareKeyIndex(keyIndex))
                     return true;
-            }
 
             return false;
         }
@@ -403,14 +396,12 @@ namespace PhysSound
 
         public void RemoveAudioContainer(int keyIndex)
         {
-            for (int i = 0; i < AudioContainers.Count; i++)
-            {
+            for (int i = 0; i < AudioContainers.Count; i++)            
                 if (AudioContainers[i].KeyIndex == keyIndex)
                 {
                     AudioContainers.RemoveAt(i);
                     return;
-                }
-            }
+                }            
         }
 
         #endregion
@@ -431,10 +422,8 @@ namespace PhysSound
 
         private AudioSource currAudioSource;
 
-        private PhysSoundMaterial soundMaterial
-        {
-            get { return physSoundObject.SoundMaterial; }
-        }
+        private PhysSoundMaterial SoundMaterial
+            => physSoundObject.SoundMaterial;
 
         public PhysSoundAudioContainer(int k)
         {
@@ -455,7 +444,7 @@ namespace PhysSound
             _basePitch = SlideAudio.pitch;
             _basePitchRand = _basePitch;
 
-            SlideAudio.clip = soundMaterial.GetAudioSet(KeyIndex).Slide;
+            SlideAudio.clip = SoundMaterial.GetAudioSet(KeyIndex).Slide;
             SlideAudio.loop = true;
             SlideAudio.volume = 0;
 
@@ -483,7 +472,7 @@ namespace PhysSound
             if (SlideAudio == null)
                 return;
 
-            float vol = exit || !soundMaterial.CollideWith(otherObject) ? 0 : soundMaterial.GetSlideVolume(relativeVelocity, normal) * _baseVol * mod;
+            float vol = exit || !SoundMaterial.CollideWith(otherObject) ? 0 : SoundMaterial.GetSlideVolume(relativeVelocity, normal) * _baseVol * mod;
 
             if (_lastFrame == Time.frameCount)
             {
@@ -495,12 +484,12 @@ namespace PhysSound
 
             if (physSoundObject.PlayClipAtPoint && currAudioSource == null && _targetVolume > 0.001f)
             {
-                _basePitchRand = _basePitch * soundMaterial.GetScaleModPitch(parentObject.transform.localScale) + soundMaterial.GetRandomPitch();
+                _basePitchRand = _basePitch * SoundMaterial.GetScaleModPitch(parentObject.transform.localScale) + SoundMaterial.GetRandomPitch();
                 currAudioSource = PhysSoundTempAudioPool.Instance.GetSource(SlideAudio);
 
                 if (currAudioSource)
                 {
-                    currAudioSource.clip = soundMaterial.GetAudioSet(KeyIndex).Slide;
+                    currAudioSource.clip = SoundMaterial.GetAudioSet(KeyIndex).Slide;
                     currAudioSource.volume = _targetVolume;
                     currAudioSource.loop = true;
                     currAudioSource.Play();
@@ -508,16 +497,16 @@ namespace PhysSound
             }
             else if (currAudioSource && !currAudioSource.isPlaying)
             {
-                _basePitchRand = _basePitch * soundMaterial.GetScaleModPitch(parentObject.transform.localScale) + soundMaterial.GetRandomPitch();
+                _basePitchRand = _basePitch * SoundMaterial.GetScaleModPitch(parentObject.transform.localScale) + SoundMaterial.GetRandomPitch();
                 currAudioSource.loop = true;
                 currAudioSource.volume = _targetVolume;
                 currAudioSource.Play();
             }
 
             if (currAudioSource)
-                currAudioSource.pitch = _basePitchRand + relativeVelocity.magnitude * soundMaterial.SlidePitchMod;
+                currAudioSource.pitch = _basePitchRand + relativeVelocity.magnitude * SoundMaterial.SlidePitchMod;
 
-            if (soundMaterial.TimeScalePitch)
+            if (SoundMaterial.TimeScalePitch)
                 currAudioSource.pitch *= Time.timeScale;
 
             _lastExit = exit;
@@ -552,10 +541,7 @@ namespace PhysSound
         /// <summary>
         /// Returns true if this Audio Container's key index is the same as the given key index.
         /// </summary>
-        public bool CompareKeyIndex(int k)
-        {
-            return k == KeyIndex;
-        }
+        public bool CompareKeyIndex(int k) => k == KeyIndex;
 
         /// <summary>
         /// Disables the associated AudioSource.
@@ -575,9 +561,7 @@ namespace PhysSound
         public void Enable()
         {
             if (SlideAudio)
-            {
                 SlideAudio.enabled = true;
-            }
         }
     }
 }

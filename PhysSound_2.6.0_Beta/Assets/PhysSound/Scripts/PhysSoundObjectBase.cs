@@ -28,10 +28,7 @@ namespace PhysSound
         protected Rigidbody2D _r2D;
 
         protected Vector3 TotalKinematicVelocity
-        {
-            get { return _kinematicVelocity + (Vector3.one * _kinematicAngularVelocity); }
-        }
-
+            => _kinematicVelocity + (Vector3.one * _kinematicAngularVelocity);
 
         void Start()
         {
@@ -45,20 +42,16 @@ namespace PhysSound
         /// Gets the PhysSound Material of this object.
         /// </summary>
         public override PhysSoundMaterial GetPhysSoundMaterial(Vector3 contactPoint)
-        {
-            return SoundMaterial;
-        }
+            => SoundMaterial;
 
         public virtual void Initialize() { }
 
         public virtual void SetEnabled(bool enabled) { }
 
-        protected void playImpactSound(GameObject otherObject, Vector3 relativeVelocity, Vector3 normal, Vector3 contactPoint)
+        protected void PlayImpactSound(GameObject otherObject, Vector3 relativeVelocity, Vector3 normal, Vector3 contactPoint)
         {
-            if (SoundMaterial == null || !this.enabled || SoundMaterial.AudioSets.Count == 0 || Time.frameCount == _lastFrame)
-            {
-                return;
-            }
+            if (SoundMaterial == null || !this.enabled || SoundMaterial.AudioSets.Count == 0 || Time.frameCount == _lastFrame)            
+                return;            
 
             if (ImpactAudio)
             {

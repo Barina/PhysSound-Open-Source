@@ -8,10 +8,9 @@ namespace PhysSound
     public class PhysSoundMaterialEditor : Editor
     {
         PhysSoundMaterial mat;
-        float dividerHeight = 2;
-
-        FoldoutList audioSetFoldout = new FoldoutList();
-        FoldoutList impactsFoldout = new FoldoutList();
+        readonly float dividerHeight = 2;
+        readonly FoldoutList audioSetFoldout = new FoldoutList();
+        readonly FoldoutList impactsFoldout = new FoldoutList();
 
         SerializedProperty timeScalePitch, pitchRand, scaleMod, slidePitchMod, slideVolMult, useColVel, scImpVol, relVelThr, impNormBias, collMask;
 
@@ -95,7 +94,7 @@ namespace PhysSound
                     PhysSoundAudioSet aud = mat.AudioSets[i];
                     Color c = GUI.color;
 
-                    if (hasDuplicate(aud))
+                    if (HasDuplicate(aud))
                     {
                         dupeFound = true;
                         GUI.color = new Color(1, 0.5f, 0.5f);
@@ -194,13 +193,11 @@ namespace PhysSound
             serializedObject.ApplyModifiedProperties();
         }
 
-        bool hasDuplicate(PhysSoundAudioSet aud)
+        bool HasDuplicate(PhysSoundAudioSet aud)
         {
             foreach (PhysSoundAudioSet audSet in mat.AudioSets)
-            {
                 if (audSet != aud && audSet.Key == aud.Key)
                     return true;
-            }
 
             return false;
         }

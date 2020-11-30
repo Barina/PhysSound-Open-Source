@@ -4,15 +4,11 @@ namespace PhysSound
 {
     public class PhysSoundTempAudio : MonoBehaviour
     {
-        private AudioSource audioSource;
-        public AudioSource Audio
-        {
-            get { return audioSource; }
-        }
+        public AudioSource Audio { get; private set; }
 
         public void Initialize(PhysSoundTempAudioPool pool)
         {
-            audioSource = gameObject.AddComponent<AudioSource>();
+            Audio = gameObject.AddComponent<AudioSource>();
 
             transform.SetParent(pool.transform);
             gameObject.SetActive(false);
@@ -20,22 +16,22 @@ namespace PhysSound
 
         public void PlayClip(AudioClip clip, Vector3 point, AudioSource template, float volume, float pitch)
         {
-            PhysSoundTempAudioPool.CopyAudioSource(template, audioSource);
+            PhysSoundTempAudioPool.CopyAudioSource(template, Audio);
 
             transform.position = point;
 
-            audioSource.clip = clip;
-            audioSource.volume = volume;
-            audioSource.pitch = pitch;
+            Audio.clip = clip;
+            Audio.volume = volume;
+            Audio.pitch = pitch;
 
             gameObject.SetActive(true);
 
-            audioSource.Play();
+            Audio.Play();
         }
 
         void Update()
         {
-            if (!audioSource.isPlaying)
+            if (!Audio.isPlaying)
             {
                 transform.position = Vector3.zero;
                 gameObject.SetActive(false);
